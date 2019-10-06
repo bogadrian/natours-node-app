@@ -1,0 +1,8 @@
+{
+    "editor.formatOnSave": true,
+    "files.autoSave": "onFocusChange",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "javascript.format.insertSpaceAfterConstructor": true,
+    "editor.parameterHints.enabled": false,
+    "git.ignoreLimitWarning": true
+}

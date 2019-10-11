@@ -7,13 +7,27 @@ const tourController = require('./../controllers/tourController');
 const router = express.Router();
 
 // a middlware function hich cheks on id only for the tours routes as it is defined only here;
-router.param('id', tourController.checkId);
+//router.param('id', tourController.checkId);
+
+//set a must used router
+router
+  .route('/get-top-5')
+  .get(
+    tourController.aliasMustUsed,
+    tourController.getTours
+  );
+
+router
+  .route('/plan-month/:year')
+  .get(tourController.getMontlyPlan);
+
+router.route('/tour-stats').get(tourController.getStats);
 
 router
   .route('/')
   .get(tourController.getTours)
-  // a middlware function availble only for this endpoint which checks if name and price proprieties in req object have been provided
-  .post(tourController.checkBody, tourController.createTour);
+  // a middlware function availble only for this endpoint which checks if name and price proprieties in req object have been provided -cancelled later
+  .post(tourController.createTour);
 router
   .route('/:id')
   .get(tourController.getTour)

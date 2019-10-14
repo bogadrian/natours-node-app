@@ -1,6 +1,8 @@
 // require Tour model
 const Tour = require('./../models/tourModel');
 const ApiFeatures = require('./../utilis/ApiFeatures');
+const catchAsync = require('./../utilis/catchAsync');
+const AppError = require('./../utilis/AppError');
 
 //must used middleware
 exports.aliasMustUsed = (req, res, next) => {
@@ -13,105 +15,90 @@ exports.aliasMustUsed = (req, res, next) => {
 };
 
 // routes handler function
-exports.getTours = async (req, res) => {
-  try {
-    const features = new ApiFeatures(Tour.find(), req.query)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
-    const tours = await features.query;
+exports.getTours = catchAsync(async (req, res, next) => {
+  const features = new ApiFeatures(Tour.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  const tours = await features.query;
 
-    // send the response
-    res.status(200).json({
-      status: 'success',
-      results: tours.length,
-      data: {
-        tours
-      }
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: 'fail',
-      message: err
-    });
-  }
-};
+  // send the response
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      tours
+    }
+  });
+});
 
-exports.getTour = async (req, res) => {
-  try {
-    const tours = await Tour.findById(req.params.id);
-    res.status(200).json({
-      status: 'success',
-      data: {
-        tours
-      }
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: 'fail',
-      message: err
-    });
-  }
-};
+exports.getTour = catchAsync(async (req, res, next) => {
+  const tour = await Tour.findById(req.params.id);
 
-exports.createTour = async (req, res) => {
-  try {
-    const newTour = await Tour.create(req.body);
-    res.status(201).json({
-      status: 'success',
-      data: {
-        newTour
-      }
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err
-    });
-  }
-};
-
-exports.updateTour = async (req, res) => {
-  try {
-    const tour = await Tour.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true
-      }
+  if (!tour) {
+    return next(
+      new AppError('No tour with that id can be found', 404)
     );
-    res.status(201).json({
-      status: 'success',
-      data: {
-        tour,
-        message: 'tour updated'
-      }
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err
-    });
   }
-};
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour
+    }
+  });
+});
 
-exports.deleteTour = async (req, res) => {
-  try {
-    await Tour.findByIdAndDelete(req.params.id);
-    res.status(204).json({
-      status: 'success',
-      data: null,
-      message: 'The tour was deleted!'
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: 'fail',
-      message: 'Cannot find any tour with that id'
-    });
+exports.createTour = catchAsync(async (req, res, next) => {
+  const newTour = await Tour.create(req.body);
+  res.status(201).json({
+    status: 'success',
+    data: {
+      newTour
+    }
+  });
+});
+
+exports.updateTour = catchAsync(async (req, res, next) => {
+  const tour = await Tour.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+      new: true,
+      runValidators: true
+    }
+  );
+
+  if (!tour) {
+    return next(
+      new AppError('No tour with that id can be found', 404)
+    );
   }
-};
+
+  res.status(201).json({
+    status: 'success',
+    data: {
+      tour,
+      message: 'tour updated'
+    }
+  });
+});
+
+exports.deleteTour = catchAsync(async (req, res, next) => {
+  const tour = await Tour.findByIdAndDelete(req.params.id);
+
+  if (!tour) {
+    return next(
+      new AppError('No tour with that id can be found', 404)
+    );
+  }
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
+    message: 'The tour was deleted!'
+  });
+});
 
 // aggeragte pipeline. will work on specific endpoint (see tourRouter.js). Matching fileds, grouping, sorting, calculating averages, minimus, maximus, length etc. then that endpoint will expose to the client all that new generated data from aggregation pipeline
 exports.getStats = async (req, res) => {
@@ -149,7 +136,7 @@ exports.getStats = async (req, res) => {
   }
 };
 
-// aggregatiopn pipeline to group tours by month starting - new endpoint defined 
+// aggregatiopn pipeline to group tours by month starting - new endpoint defined
 exports.getMontlyPlan = async (req, res) => {
   try {
     const year = req.params.year * 1;

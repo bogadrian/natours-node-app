@@ -9,7 +9,7 @@ const router = express.Router();
 // a middlware function hich cheks on id only for the tours routes as it is defined only here;
 //router.param('id', tourController.checkId);
 
-//set a must used router
+//set a most used router
 router
   .route('/get-top-5')
   .get(

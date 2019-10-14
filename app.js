@@ -3,6 +3,9 @@ const morgan = require('morgan');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
+const AppError = require('./utilis/AppError');
+const globalErrorHandler = require('./controllers/errorController');
+
 const app = express();
 
 // Middleware Stack
@@ -32,6 +35,19 @@ app.use((req, res, next) => {
 // the routes mountig for tours and users. they have access to tour Router and userRouter files where the endpoints are defined
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+// route handler for all the endpoints misteken
+app.all('*', (req, res, next) => {
+  next(
+    new AppError(
+      `Can't find ${req.originalUrl} on this path!`,
+      404
+    )
+  );
+});
+
+// error handler function, to be called by next(err, status Code ) sintax from everywhere
+app.use(globalErrorHandler);
 
 // export the app in order to make it availble in routes files
 module.exports = app;

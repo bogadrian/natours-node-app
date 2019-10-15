@@ -29,9 +29,7 @@ mongoose
     useFindAndModify: false,
     useUnifiedTopology: true
   })
-  .then(() =>
-    console.log('MongoDb is connected at this point!')
-  );
+  .then(() => console.log('MongoDb is connected at this point!'));
 
 // set the port, one from onfig.env if there is any or 3000
 const port = process.env.PORT || 3000;

@@ -1,4 +1,4 @@
-// this an Api future where some query are executed. sort(), filter(), limitFields(), paginate(). it works with every data model. every method is independent from others, works as stand alone method. In this example this module is imported in tourController for the get all tours function. there this operation has sense to be peromered.
+// this is an Api future where some query are executed. sort(), filter(), limitFields(), paginate(). it works with every data model. every method is independent from others, works as stand alone method. In this example this module is imported in tourController for the get all tours function. there this operation has sense to be peromered. it may be in get all user also, but it does not make much sense there.
 class ApiFeatures {
   constructor(query, queryString) {
     this.query = query;
@@ -10,12 +10,7 @@ class ApiFeatures {
   filter() {
     // mutate the original req.query object in order to exclude some parametres
     const queryObj = { ...this.queryString };
-    const deleteQueries = [
-      'limit',
-      'page',
-      'sort',
-      'fields'
-    ];
+    const deleteQueries = ['limit', 'page', 'sort', 'fields'];
     deleteQueries.forEach(el => delete queryObj[el]);
 
     // replace gt, gte, lt, lte - which comes with request object, with $gte, $gt, $lte, $lt to much the mongoose operator
@@ -34,9 +29,7 @@ class ApiFeatures {
   sort() {
     //sort - split the req.query.sort by comma and join it back by space as required in mongooose
     if (this.queryString.sort) {
-      const sortedBy = this.queryString.sort
-        .split(',')
-        .join(' ');
+      const sortedBy = this.queryString.sort.split(',').join(' ');
       this.query = this.query.sort(sortedBy);
       //set a default sorting
     } else {
@@ -49,9 +42,7 @@ class ApiFeatures {
   limitFields() {
     //limit fields sent back ti client by fields query
     if (this.queryString.fields) {
-      const fields = this.queryString.fields
-        .split(',')
-        .join(' ');
+      const fields = this.queryString.fields.split(',').join(' ');
       this.query = this.query.select(fields);
       // set default - set also select to false in Schema in order to not expose creataedAt to client
     } else {

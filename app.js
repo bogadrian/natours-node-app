@@ -1,20 +1,51 @@
 const express = require('express');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
+
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
-
 const AppError = require('./utilis/AppError');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
 // Middleware Stack
+//set http secure headers with helmet
+app.use(helmet());
+
 // set morgan tu run only in development enviroment
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
-// set express.json() middleware in oreder to have access to req.body data
-app.use(express.json());
+
+// Limit requests from same API 10 100 per hour
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message:
+    'Too many requests from this IP, please try again in an hour!'
+});
+app.use('/api', limiter);
+
+// set express.json() middleware in oreder to have access to req.body data. Limit the amopunt of data caoming in with req.body at only 10kb
+app.use(express.json({ limit: '10kb' }));
+
+//protect agians nosql query injection with
+app.use(mongoSanitize());
+
+//protect agains xss atacks. don't allow malicious html to be sent in req.body
+app.use(xss());
+
+//Prevent parametr query pollution
+app.use(
+  hpp({
+    whitelist: ['duration', 'price']
+  })
+);
 
 // set the public folder assets path with exprs.sstatic()
 app.use(express.static(`${__dirname}/public`));
@@ -39,10 +70,7 @@ app.use('/api/v1/users', userRouter);
 // route handler for all the endpoints misteken
 app.all('*', (req, res, next) => {
   next(
-    new AppError(
-      `Can't find ${req.originalUrl} on this path!`,
-      404
-    )
+    new AppError(`Can't find ${req.originalUrl} on this path!`, 404)
   );
 });
 

@@ -1,104 +1,23 @@
 // require Tour model
 const Tour = require('./../models/tourModel');
-const ApiFeatures = require('./../utilis/ApiFeatures');
-const catchAsync = require('./../utilis/catchAsync');
-const AppError = require('./../utilis/AppError');
+const factory = require('./factoryHandler');
 
-//must used middleware
+//must used middleware by users, creating and endpoint specific for this query string. find it in tourRoute
 exports.aliasMustUsed = (req, res, next) => {
   //limit=5&sort=-ratingAverage,price
   req.query.limit = '5';
   req.query.sort = '-ratingAverage, price';
-  req.query.fields =
-    'name, price, description, summary, difficulty';
+  req.query.fields = 'name, price, description, summary, difficulty';
   next();
 };
 
 // routes handler function
-exports.getTours = catchAsync(async (req, res, next) => {
-  const features = new ApiFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  const tours = await features.query;
-
-  // send the response
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      tours
-    }
-  });
-});
-
-exports.getTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findById(req.params.id);
-
-  if (!tour) {
-    return next(
-      new AppError('No tour with that id can be found', 404)
-    );
-  }
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour
-    }
-  });
-});
-
-exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
-  res.status(201).json({
-    status: 'success',
-    data: {
-      newTour
-    }
-  });
-});
-
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    {
-      new: true,
-      runValidators: true
-    }
-  );
-
-  if (!tour) {
-    return next(
-      new AppError('No tour with that id can be found', 404)
-    );
-  }
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tour,
-      message: 'tour updated'
-    }
-  });
-});
-
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
-
-  if (!tour) {
-    return next(
-      new AppError('No tour with that id can be found', 404)
-    );
-  }
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-    message: 'The tour was deleted!'
-  });
-});
+exports.getTours = factory.getAllDoc(Tour);
+//call get tour with populate option object. see mopre in factoryHandler
+exports.getTour = factory.getDoc(Tour, { path: 'reviews' });
+exports.createTour = factory.createDoc(Tour);
+exports.updateTour = factory.updateDoc(Tour);
+exports.deleteTour = factory.deleteDoc(Tour);
 
 // aggeragte pipeline. will work on specific endpoint (see tourRouter.js). Matching fileds, grouping, sorting, calculating averages, minimus, maximus, length etc. then that endpoint will expose to the client all that new generated data from aggregation pipeline
 exports.getStats = async (req, res) => {
@@ -188,3 +107,34 @@ exports.getMontlyPlan = async (req, res) => {
     });
   }
 };
+
+//GET TOURS WITHIN function. endpoint defined in tourRoutes.js This function gets all the points ina radius distance sphere which we define in url. make sure you include tourschema.index as 2dSphere index in tourModell
+// exports.getToursWithin = catchAsync(async (req, res, next) => {
+//   ///tours-within/80/center/34.117083, -118.218282/unit/mi
+//   const { distance, latlng, unit } = req.params;
+//   const [lat, lng] = latlng.split(',');
+
+//   // radius variable. the find() method below needs this variable in order to work
+//   const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+//   if (!lat || !lng) {
+//     return next(
+//       new AppError('Please provide latitude and longitude in format lat,lng!')
+//     );
+//   }
+
+//   // the main piece of code which gets the point within a radius distance
+//   const tours = await Tour.find({
+//     startLocation: {
+//       $geoWithin: { $centerSphere: [[lng, lat], radius] }
+//     }
+//   });
+
+//   res.status(200).json({
+//     status: 'success',
+//     results: tours.length,
+//     data: {
+//       data: tours
+//     }
+//   });
+// });

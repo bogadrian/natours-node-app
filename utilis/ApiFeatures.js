@@ -1,4 +1,4 @@
-// this is an Api future where some query are executed. sort(), filter(), limitFields(), paginate(). it works with every data model. every method is independent from others, works as stand alone method. In this example this module is imported in tourController for the get all tours function. there this operation has sense to be peromered. it may be in get all user also, but it does not make much sense there.
+// this is an Api future where some query are executed. sort(), filter(), limitFields(), paginate(). it works with every data model. every method is independent from others, works as stand alone method. In this example this module is imported in tourController for the get all tours function. overthere this operation has sense to be peromered. it may be in get all user also, but it does not make much sense overthere.
 class ApiFeatures {
   constructor(query, queryString) {
     this.query = query;
@@ -15,10 +15,7 @@ class ApiFeatures {
 
     // replace gt, gte, lt, lte - which comes with request object, with $gte, $gt, $lte, $lt to much the mongoose operator
     let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(
-      /\b(lt|lte|gt|gte)\b/g,
-      match => `$${match}`
-    );
+    queryStr = queryStr.replace(/\b(lt|lte|gt|gte)\b/g, match => `$${match}`);
 
     //call find mongosse method with the filtred request object here
     this.query = this.query.find(JSON.parse(queryStr));

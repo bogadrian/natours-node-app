@@ -2,8 +2,9 @@
 const catchAsync = require('./../utilis/catchAsync');
 const User = require('./../models/userModel');
 const AppError = require('./../utilis/AppError');
+const factory = require('./factoryHandler');
 
-// filter teh req.body object for unwanted fileds. This function is called below in updateMe function
+// filter the req.body object for unwanted fileds. This function is called below in updateMe function
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
   Object.keys(obj).forEach(el => {
@@ -43,14 +44,10 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   const filteredBody = filterObj(req.body, 'name', 'email');
 
   // 3) Update user document. use finfByIdAndUpdate here. so not all the fields will be required in order to perform update
-  const updatedUser = await User.findByIdAndUpdate(
-    req.user.id,
-    filteredBody,
-    {
-      new: true,
-      runValidators: true
-    }
-  );
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true
+  });
 
   // send the answer with the update user data to client
   res.status(200).json({
@@ -73,30 +70,8 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.createUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not defined'
-  });
-};
-
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not defined'
-  });
-};
-
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not defined'
-  });
-};
-
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not defined'
-  });
-};
+// teh general handlers generalized and availble only for admin. were exported to factoryHandler
+exports.getUsers = factory.getAllDoc(User);
+exports.getUser = factory.getDoc(User);
+exports.deleteUser = factory.deleteDoc(User);
+exports.updateUser = factory.updateDoc(User);

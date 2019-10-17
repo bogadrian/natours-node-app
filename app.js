@@ -8,6 +8,7 @@ const hpp = require('hpp');
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const reviewsRouter = require('./routes/reviewsRoute');
 const AppError = require('./utilis/AppError');
 const globalErrorHandler = require('./controllers/errorController');
 
@@ -26,8 +27,7 @@ if (process.env.NODE_ENV === 'development') {
 const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
-  message:
-    'Too many requests from this IP, please try again in an hour!'
+  message: 'Too many requests from this IP, please try again in an hour!'
 });
 app.use('/api', limiter);
 
@@ -66,12 +66,11 @@ app.use((req, res, next) => {
 // the routes mountig for tours and users. they have access to tour Router and userRouter files where the endpoints are defined
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewsRouter);
 
 // route handler for all the endpoints misteken
 app.all('*', (req, res, next) => {
-  next(
-    new AppError(`Can't find ${req.originalUrl} on this path!`, 404)
-  );
+  next(new AppError(`Can't find ${req.originalUrl} on this path!`, 404));
 });
 
 // error handler function, to be called by next(err, status Code ) sintax from everywhere

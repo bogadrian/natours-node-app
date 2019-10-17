@@ -7,17 +7,9 @@ const router = express.Router();
 const userController = require('./../controllers/userController');
 const authController = require('./../controllers/authController');
 
-router.route(
-  '/updateMe',
-  authController.protect,
-  userController.updateMe
-);
-
-router.delete(
-  '/deleteMe',
-  authController.protect,
-  userController.deleteMe
-);
+//Update me and delate me routes for user only
+router.route('/updateMe', authController.protect, userController.updateMe);
+router.delete('/deleteMe', authController.protect, userController.deleteMe);
 
 // routes for user itsefl
 router.route('/signup').post(authController.signup);
@@ -29,6 +21,7 @@ router.patch(
   authController.protect,
   authController.updatePassword
 );
+
 //forgotPssword route and restePassword route
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);

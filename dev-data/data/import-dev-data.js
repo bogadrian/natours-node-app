@@ -2,11 +2,12 @@
 const fs = require('fs');
 //require mongoose
 const mongoose = require('mongoose');
-// require Tour model
-const Tour = require('./../../models/tourModel');
 
 // install dotenv package in order to access config.env
 const dotenv = require('dotenv');
+
+// require Tour model
+const Tour = require('./../../models/tourModel');
 
 // tell express the path of config.env
 dotenv.config({ path: './config.env' });
@@ -14,7 +15,7 @@ dotenv.config({ path: './config.env' });
 //call the mongoDB url connection and replace the passord
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
-  process.env.DATABASE_PASSWORD,
+  process.env.DATABASE_PASSWORD
 );
 
 mongoose
@@ -22,12 +23,12 @@ mongoose
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false,
-    useUnifiedTopology: true,
+    useUnifiedTopology: true
   })
   .then(() => console.log('MongoDb is connected at this point!'));
 
 const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8'),
+  fs.readFileSync(`${__dirname}/tours.json`, 'utf-8')
 );
 
 const importData = async () => {
@@ -45,7 +46,7 @@ const deleteData = async () => {
     await Tour.deleteMany();
     console.log('Data Deleted!');
     process.exit();
-  } catch {
+  } catch (err) {
     console.log(err);
   }
 };

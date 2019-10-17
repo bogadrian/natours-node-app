@@ -84,7 +84,7 @@ userSchema.methods.correctPassword = async function(
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-// check if token was issued after password change. this function - or instance method how it is called, lives in authController. It has the goal of comparing the Date the token was issued with the evenmtual date the password was changed. Therefor a passwordChangeAt field will be defined in Schema and will be provided when the password is chenged.
+// check if token was issued after password change. this function - or instance method how it is called, lives in authController. It has the goal of comparing the Date the token was issued with the eventual date the password was changed. Therefor a passwordChangeAt field will be defined in Schema and will be provided when the password is chenged.
 userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   if (this.passwordChangedAt) {
     // a changeTimeStamp variable which transform the Date stored in changePasswordAt in a timestamp similar to the one provided by jwt iat - issued at time - and keept inside the token. avialble after the tokne was decoded
@@ -100,7 +100,7 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   return false;
 };
 
-// generate a reste passsword token using nodejs crypto model
+// generate a reset passsword token using nodejs crypto model
 userSchema.methods.createPasswordResetToken = function() {
   //generate the token
   const resetToken = crypto.randomBytes(32).toString('hex');

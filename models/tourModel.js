@@ -10,14 +10,8 @@ const tourSchema = mongoose.Schema(
       required: [true, 'A tour must have a name'],
       unique: true,
       trim: true,
-      maxlength: [
-        40,
-        'A tour name must have less or equal then 40 characters'
-      ],
-      minlength: [
-        10,
-        'A tour name must have more or equal then 10 characters'
-      ]
+      maxlength: [40, 'A tour name must have less or equal then 40 characters'],
+      minlength: [10, 'A tour name must have more or equal then 10 characters']
     },
     slug: String,
     duration: {
@@ -33,8 +27,7 @@ const tourSchema = mongoose.Schema(
       required: [true, 'A tour must have a difficulty'],
       enum: {
         values: ['easy', 'medium', 'difficult'],
-        message:
-          'Difficulty is either: easy, medium, difficult'
+        message: 'Difficulty is either: easy, medium, difficult'
       }
     },
     ratingsAverage: {
@@ -58,8 +51,7 @@ const tourSchema = mongoose.Schema(
           // this only points to current doc on NEW document creation
           return val < this.price;
         },
-        message:
-          'Discount price ({VALUE}) should be below regular price'
+        message: 'Discount price ({VALUE}) should be below regular price'
       }
     },
     summary: {
@@ -81,11 +73,43 @@ const tourSchema = mongoose.Schema(
       default: Date.now(),
       select: false
     },
-    startDates: [Date]
-    // secretTour: {
-    //   type: Boolean,
-    //   default: false
-    // }
+    //embad guides into tour. take a look at middleware below
+    //guides: Array,
+    // reffrencing guides document in tourschema
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+      }
+    ],
+    startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false
+    }
+    // startLocation: {
+    //   type: {
+    //     type: String,
+    //     default: 'Point',
+    //     enum: ['Point']
+    //   },
+    //   coordinates: [Number],
+    //   adress: String,
+    //   description: String
+    // },
+    // locations: [
+    //   {
+    //     type: {
+    //       type: String,
+    //       default: 'Point',
+    //       enum: ['Point']
+    //     },
+    //     coordinates: [Number],
+    //     adress: String,
+    //     description: String,
+    //     day: Number
+    //   }
+    // ]
   },
   //enable virtual fileds
   {
@@ -94,9 +118,25 @@ const tourSchema = mongoose.Schema(
   }
 );
 
+// ADD INDEXES to fileds to allow a quicker search
+//add 2dsphere index to allow MongoDb to search for geolocation
+tourSchema.index({ startLocation: '2dsphere' });
+
 // virtual propriety; good to output a field from a given filed but nor worthed to be stored in db. by example the duration in weeks from given duration in days. must be decleared as an option object in Schema itself
 tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
+});
+
+//populate the tour with the corespondig reviews using virtual populate method
+tourSchema.virtual('reviews', {
+  //reffernce the Module you want to get the data from
+  ref: 'Review',
+  // declair the foreigField, which keeps track of the coresponding field in Reviews Models
+  foreignField: 'tour',
+  // declair the local field which corespond here in Topur Model to the foreignFiled in Reviews Models
+  localField: '_id'
+
+  // then call populate in getTour controller handler with populate('reviews)
 });
 
 // mongoose pre - save middleawre to be runned before saving. add a slug
@@ -117,6 +157,13 @@ tourSchema.pre('save', function(next) {
 //   next();
 // });
 
+//EMBAD GUIDES INTO TOURS MODEL. take a look at guides field in Schema,
+// tourSchema.pre('save', async function(next) {
+//   const guidesPromises = this.guides.map(async id => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
+
 // QUERY MIDDLEWARE
 // tourSchema.pre('find', function(next) {
 tourSchema.pre(/^find/, function(next) {
@@ -126,11 +173,9 @@ tourSchema.pre(/^find/, function(next) {
   next();
 });
 
-// tour schema post middleware. here it counts the time between the command to save a document and the time that docuemnt is saved
+// tour schema post middleware. here it counts the time between the command to save a document and the time that document is saved
 tourSchema.post(/^find/, function(docs, next) {
-  console.log(
-    `Query took ${Date.now() - this.start} milliseconds!`
-  );
+  console.log(`Query took ${Date.now() - this.start} milliseconds!`);
   next();
 });
 

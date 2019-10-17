@@ -23,13 +23,11 @@ const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
   const cookieOptions = {
     expires: new Date(
-      Date.now() +
-        process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     httpOnly: true
   };
-  if (process.env.NODE_ENV === 'production')
-    cookieOptions.secure = true;
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
 
@@ -68,9 +66,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   //check if passsword and email exists and if not, call next with a nea AppError object
   if (!password || !email) {
-    return next(
-      new AppError('Plaese provide password and email!', 400)
-    );
+    return next(new AppError('Plaese provide password and email!', 400));
   }
 
   // check if the password is correct. first find the user by the id he provides in req.body. include password field here - it was excluded by default in Schema
@@ -78,10 +74,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // call a instance method in userModel and passe it the candiadate password and the user pasword stored in database: (moved inside if statment because if user does not exits, then the comparation between password don't need to run anymore)
   // now check if user exists and tha password is correct
-  if (
-    !user ||
-    !(await user.correctPassword(password, user.password))
-  ) {
+  if (!user || !(await user.correctPassword(password, user.password))) {
     return next(
       new AppError('Please provide a correct email and password', 401)
     );
@@ -110,10 +103,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   //check if the token is correct. use promisify here in order to stay consistent and to be able to await jwt.verify. then call the function with the client token and the secret.
-  const decoded = await promisify(jwt.verify)(
-    token,
-    process.env.JWT_SECRET
-  );
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
   // check if user still exits here.  use decoded id here to be sure teh jwt.verify has passed and there is an auturhoized user. if user no longer exists (because it was deleted by example), deny the authorization
   const currentUser = await User.findById(decoded.id);
@@ -129,10 +119,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   // check if password wasn't change after the token was issued. call a changePasswordAfter instance method which lives in userModel and that will compare the Date the token was issued with the Date the passsword was eventualy changed
   if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
-      new AppError(
-        'User recently changed password! Please log in again.',
-        401
-      )
+      new AppError('User recently changed password! Please log in again.', 401)
     );
   }
 
@@ -147,10 +134,7 @@ exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return next(
-        new AppError(
-          "You don't have permission to perform this action!",
-          403
-        )
+        new AppError("You don't have permission to perform this action!", 403)
       );
     }
     next();
@@ -163,9 +147,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
-    return next(
-      new AppError('There is no user with email address.', 404)
-    );
+    return next(new AppError('There is no user with email address.', 404));
   }
 
   // 2) Generate the random reset token. call createPasswordResetToken in userModel in order to do that. then save the user but don't ask for validation by setting validateBeforesave to false. validation will not work here because the password is unknown
@@ -200,9 +182,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     return next(
-      new AppError(
-        'There was an error sending the email. Try again later!'
-      ),
+      new AppError('There was an error sending the email. Try again later!'),
       500
     );
   }
@@ -243,12 +223,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id).select('+password');
 
   // 2) Check if POSTed current password is correct. call correctPassword in userModel where bcrypt will verify the password provided in req.body.passwordCurrent with the one stored in database
-  if (
-    !(await user.correctPassword(
-      req.body.passwordCurrent,
-      user.password
-    ))
-  ) {
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
     return next(new AppError('Your current password is wrong.', 401));
   }
 

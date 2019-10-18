@@ -7,24 +7,25 @@ const router = express.Router();
 const userController = require('./../controllers/userController');
 const authController = require('./../controllers/authController');
 
-//Update me and delate me routes for user only
-router.route('/updateMe', authController.protect, userController.updateMe);
-router.delete('/deleteMe', authController.protect, userController.deleteMe);
-
 // routes for user itsefl
 router.route('/signup').post(authController.signup);
 router.route('/login').post(authController.login);
-
-// update mypassword for login users. put protect here. so tehre is access to req.user
-router.patch(
-  '/updateMyPassword',
-  authController.protect,
-  authController.updatePassword
-);
-
 //forgotPssword route and restePassword route
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
+
+// ad protect middleware to all following routes
+router.use(authController.protect);
+
+//Update me and delate me routes for user only
+router.route('/updateMe').patch(userController.updateMe);
+router.route('/deleteMe').delete(userController.deleteMe);
+router.route('/me').get(userController.getMe, userController.getUser);
+// update mypassword for login users. put protect here. so tehre is access to req.user
+router.patch('/updateMyPassword', authController.updatePassword);
+
+// restric only to admin the follwing Routes
+router.use(authController.restrictTo('admin'));
 
 // router for main endpoint route and for tha one who needs the id params - just for admin use
 router

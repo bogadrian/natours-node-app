@@ -5,6 +5,7 @@
   "main": "app.js",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.4",
     "dotenv": "^8.1.0",
     "eslint-plugin-react-hooks": "^2.1.2",
     "express": "^4.17.1",

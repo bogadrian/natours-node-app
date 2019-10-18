@@ -86,30 +86,30 @@ const tourSchema = mongoose.Schema(
     secretTour: {
       type: Boolean,
       default: false
-    }
-    // startLocation: {
-    //   type: {
-    //     type: String,
-    //     default: 'Point',
-    //     enum: ['Point']
-    //   },
-    //   coordinates: [Number],
-    //   adress: String,
-    //   description: String
-    // },
-    // locations: [
-    //   {
-    //     type: {
-    //       type: String,
-    //       default: 'Point',
-    //       enum: ['Point']
-    //     },
-    //     coordinates: [Number],
-    //     adress: String,
-    //     description: String,
-    //     day: Number
-    //   }
-    // ]
+    },
+    startLocation: {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point']
+      },
+      coordinates: [Number],
+      adress: String,
+      description: String
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point']
+        },
+        coordinates: [Number],
+        adress: String,
+        description: String,
+        day: Number
+      }
+    ]
   },
   //enable virtual fileds
   {
@@ -121,6 +121,10 @@ const tourSchema = mongoose.Schema(
 // ADD INDEXES to fileds to allow a quicker search
 //add 2dsphere index to allow MongoDb to search for geolocation
 tourSchema.index({ startLocation: '2dsphere' });
+
+//enabling indexes for the most queried fileds
+tourSchema.index({ price: -1 });
+tourSchema.index({ slug: 1 });
 
 // virtual propriety; good to output a field from a given filed but nor worthed to be stored in db. by example the duration in weeks from given duration in days. must be decleared as an option object in Schema itself
 tourSchema.virtual('durationWeeks').get(function() {

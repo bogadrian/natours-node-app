@@ -13,19 +13,24 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-//GET ALL USERS
-exports.getUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 
-  // send the response
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users
-    }
-  });
-});
+// //GET ALL USERS
+// exports.getUsers = catchAsync(async (req, res, next) => {
+//   const users = await User.find();
+
+//   // send the response
+//   res.status(200).json({
+//     status: 'success',
+//     results: users.length,
+//     data: {
+//       users
+//     }
+//   });
+// });
 
 //UPDATE ME
 //this function allows the user to change the name or email but not the password or the role.
@@ -40,7 +45,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     );
   }
 
-  // 2) Filtered out unwanted fields names that are not allowed to be updated. call filterObj above
+  //2) Filtered out unwanted fields names that are not allowed to be updated. call filterObj above
   const filteredBody = filterObj(req.body, 'name', 'email');
 
   // 3) Update user document. use finfByIdAndUpdate here. so not all the fields will be required in order to perform update
@@ -61,7 +66,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 //DELETE ME
 //set active field to false
 exports.deleteMe = catchAsync(async (req, res, next) => {
-  //the req.user.id is availble here because rotect runs before
+  //the req.user.id is availble here because protect runs before
   await User.findByIdAndUpdate(req.user.id, { active: false });
 
   res.status(204).json({
@@ -74,4 +79,5 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 exports.getUsers = factory.getAllDoc(User);
 exports.getUser = factory.getDoc(User);
 exports.deleteUser = factory.deleteDoc(User);
+exports.createUser = factory.createDoc(User);
 exports.updateUser = factory.updateDoc(User);

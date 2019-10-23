@@ -1,11 +1,10 @@
 const express = require('express');
-
-// define the router
-const router = express.Router();
-
 // import the user controller where all the handlers for this routes are defiend
 const userController = require('./../controllers/userController');
 const authController = require('./../controllers/authController');
+
+// define the router
+const router = express.Router();
 
 // routes for user itsefl
 router.route('/signup').post(authController.signup);
@@ -17,10 +16,15 @@ router.patch('/resetPassword/:token', authController.resetPassword);
 // ad protect middleware to all following routes
 router.use(authController.protect);
 
-//Update me and delate me routes for user only
-router.route('/updateMe').patch(userController.updateMe);
-router.route('/deleteMe').delete(userController.deleteMe);
-router.route('/me').get(userController.getMe, userController.getUser);
+//Update me and delate me routes for user only. upload user photo middleware abd resize photo. first middleware, uploadUserPhoto is filtering out nly for images and uploading them to memory; teh second, resizeUserPhoto is processing the image and save it to folder
+router.patch(
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.resizeUserPhoto,
+  userController.updateMe
+);
+router.delete('/deleteMe', userController.deleteMe);
+router.get('/me', userController.getMe, userController.getUser);
 // update mypassword for login users. put protect here. so tehre is access to req.user
 router.patch('/updateMyPassword', authController.updatePassword);
 

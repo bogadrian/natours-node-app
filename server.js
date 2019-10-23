@@ -39,10 +39,12 @@ const server = app.listen(port, () => {
   console.log(`Server is up and running on port ${port}`);
 });
 
+//old password and new mongodb string connection; I created as I wasn't able to connect at the old cluster natorus-app. but after creating natorus2-app, the old one retuned to work!!!
+//waJLewcXBQX6RxGn; DATABASE=mongodb+srv://bogdan:<password>@cluster0-hyfqo.mongodb.net/test
 // listening for every hundlead error by unhandledRejection event when there is any, shuting down the server
 process.on('unhandledRejection', err => {
   console.log('UNHANDLED REJECTION! 💥 Shutting down...');
-  console.log(err.name, err.message);
+  console.log(err.name, err.message, err);
   server.close(() => {
     process.exit(1);
   });

@@ -6,6 +6,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
@@ -51,8 +52,8 @@ app.use(
   })
 );
 
-// set the public folder assets path with exprs.sstatic()
-app.use(express.static(`${__dirname}/public`));
+// Serving static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // just an example for how a general middleware works
 app.use((req, res, next) => {

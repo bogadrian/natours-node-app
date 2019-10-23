@@ -1,6 +1,74 @@
+const multer = require('multer');
+const sharp = require('sharp');
+const catchAsync = require('./../utilis/catchAsync');
+const AppError = require('./../utilis/AppError');
+
 // require Tour model
 const Tour = require('./../models/tourModel');
 const factory = require('./factoryHandler');
+
+///////// MULTER STACK //////////
+
+//define multer Storage to memory
+const multerStorage = multer.memoryStorage();
+
+//define multer filter
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image! Please upload only images.', 400), false);
+  }
+};
+
+// define opload options
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter
+});
+
+// define upload fields for multiple mixed files uploads. tehre is upload.array() for multiple same file uploads too
+exports.uploadTourImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 }
+]);
+
+// upload.single('image') req.file
+// upload.array('images', 5) req.files
+
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  if (!req.files.imageCover || !req.files.images) return next();
+
+  // 1) Cover image. assign a new propriety to req.body called imageCover as defined in Schema, in order to save that name in database
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${req.body.imageCover}`);
+
+  // 2) Images
+  // define an empty array to contain all 3 images coming drom req.body.images, and loop trough that array to extract any images and fill up the array. all 3 are promises so you have to wait Promise.all
+  req.body.images = [];
+
+  await Promise.all(
+    req.files.images.map(async (file, i) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`);
+
+      req.body.images.push(filename);
+    })
+  );
+
+  next();
+});
+
+////// END MULTER STACK //////
 
 //must used middleware by users, creating and endpoint specific for this query string. find it in tourRoute
 exports.aliasMustUsed = (req, res, next) => {

@@ -37,10 +37,13 @@ exports.uploadTourImages = upload.fields([
 // upload.array('images', 5) req.files
 
 exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  // upload.fileds and upload.array prodeces req.files, plural, compair to upload.single which produces req.file, singular
   if (!req.files.imageCover || !req.files.images) return next();
 
   // 1) Cover image. assign a new propriety to req.body called imageCover as defined in Schema, in order to save that name in database
   req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+
+  // imageCover is at req.files.imageCover - which is an array so there is only one item we pick [1], and then is buffer, the image itself saved in memory as a buffer
   await sharp(req.files.imageCover[0].buffer)
     .resize(2000, 1333)
     .toFormat('jpeg')
@@ -48,19 +51,24 @@ exports.resizeTourImages = catchAsync(async (req, res, next) => {
     .toFile(`public/img/tours/${req.body.imageCover}`);
 
   // 2) Images
-  // define an empty array to contain all 3 images coming drom req.body.images, and loop trough that array to extract any images and fill up the array. all 3 are promises so you have to wait Promise.all
+  // define an empty array to contain all 3 images coming from req.body.images (the images are in memory at this point), and loop trough that array to extract any images and fill up the array. all 3 are promises so you have to wait Promise.all
   req.body.images = [];
 
   await Promise.all(
+    // use map here in oreder to save the loop result of each iteration so we can call Promise.all on it in oreder to await all the resizing operation to be ready. if we were using forEach, the loop esult wouldn't be save so when naxt() is called the arry would be still empty
+    // here req.body.images are in buffer mode;
     req.files.images.map(async (file, i) => {
       const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
 
+      // read the file with buffer propriety from each iteration and process each image.
       await sharp(file.buffer)
         .resize(2000, 1333)
         .toFormat('jpeg')
         .jpeg({ quality: 90 })
         .toFile(`public/img/tours/${filename}`);
 
+      // push the processed image into req.body.images agian, in order to have them in req.body as images propriety. practic we change the images from buffer to fisical on disk
+      // here req.body.images are on disk
       req.body.images.push(filename);
     })
   );

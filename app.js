@@ -7,6 +7,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const compression = require('compression');
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
@@ -66,6 +67,9 @@ app.use((req, res, next) => {
   req.reqTime = new Date().toISOString();
   next();
 });
+
+//add compression to middleware stack in order to compress text files
+app.use(compression());
 
 // Routes
 // the routes mountig for tours and users. they have access to tour Router and userRouter files where the endpoints are defined

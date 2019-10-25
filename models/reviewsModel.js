@@ -34,6 +34,9 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
+// create a compund index set to 1 as unique for tour nd user. so one user, can only have 1 review for one tour!
+reviewSchema.index({ user: 1, tour: 1 }, { unique: true });
+
 //populate the review with tour and user here in this middleware query for reviews. tunr off tour populate to avoid nested populate
 reviewSchema.pre(/^find/, function(next) {
   // populating the review with the toru data would be too much, too nested populate fields
